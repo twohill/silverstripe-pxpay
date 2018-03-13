@@ -7,8 +7,8 @@ use SilverStripe\ORM\DataObject;
 class PxPayment extends DataObject {
 
     private static $singular_name = "Payment";
-    
-    private static $db = array(
+
+    private static $db = [
         'TxnType' => 'Enum("Purchase, Auth", "Purchase")',
         'PaymentMethod' => 'Enum("CreditCard, Bank Transfer, Invoice", "CreditCard")',
         'MerchantReference' => 'Varchar(64)',
@@ -20,23 +20,24 @@ class PxPayment extends DataObject {
         'AmountInput' => 'Currency',
         'CurrencyInput' => 'Varchar(5)',
         'Processed' => 'Boolean',
-    );
+    ];
 
-    private static $has_one = array(
+    private static $has_one = [
         'ExhibitorRegistration' => 'ExhibitorRegistration'
-    );
-    private static $indexes = array(
-        'MerchantReference' => array(
-            'type' => 'unique',
-            'value' => 'MerchantReference',
-        ),
-    );
+    ];
 
-    private static $summary_fields = array(
+    private static $indexes = [
+        'MerchantReference' => [
+            'type' => 'unique',
+            'columns' => ['MerchantReference'],
+        ],
+    ];
+
+    private static $summary_fields = [
         'Created',
         'PaymentMethod',
         'MerchantReference',
         'AmountInput',
         'Processed',
-    );
+    ];
 }
