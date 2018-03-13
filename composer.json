@@ -1,0 +1,27 @@
+{
+	"name": "twohill/silverstripe-pxpay",
+	"description": "Payment Express controller",
+	"keywords": [
+		"silverstripe",
+		"PaymentExpress"
+	],
+	"license": "BSD-3-Clause",
+	"minimum-stability": "dev",
+	"type": "silverstripe-vendormodule",
+	"homepage": "https://github.com/twohill/silverstripe-pxpay",
+	"authors": [
+		{
+			"name": "Al Twohill",
+			"email": "al@twohill.nz"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/twohill/silverstripe-pxpay/issues"
+	},
+	"require": {
+		"twohill/silverstripe-nestedcontrollers": "dev-master"
+	},
+	"extra": {
+		"installer-name": "pxpay"
+	}
+}

@@ -1,0 +1,3 @@
+mappings:
+  PxPaymentController: Twohill\PXPay\PxPaymentController
+  PxPayment: Twohill\PXPay\PxPayment
