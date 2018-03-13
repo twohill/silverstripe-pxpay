@@ -6,6 +6,8 @@ use SilverStripe\ORM\DataObject;
 
 class PxPayment extends DataObject {
 
+    private static $table_name = "PXPayment";
+
     private static $singular_name = "Payment";
 
     private static $db = [
