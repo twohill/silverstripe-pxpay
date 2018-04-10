@@ -12,7 +12,6 @@ class PxPayment extends DataObject {
 
     private static $db = [
         'TxnType' => 'Enum("Purchase, Auth", "Purchase")',
-        'PaymentMethod' => 'Enum("CreditCard, Bank Transfer, Invoice", "CreditCard")',
         'MerchantReference' => 'Varchar(64)',
         'TxnId' => 'Varchar(16)',
         'TxnData1' => 'Varchar(255)',
@@ -24,9 +23,6 @@ class PxPayment extends DataObject {
         'Processed' => 'Boolean',
     ];
 
-    private static $has_one = [
-        'ExhibitorRegistration' => 'ExhibitorRegistration'
-    ];
 
     private static $indexes = [
         'MerchantReference' => [
@@ -37,7 +33,6 @@ class PxPayment extends DataObject {
 
     private static $summary_fields = [
         'Created',
-        'PaymentMethod',
         'MerchantReference',
         'AmountInput',
         'Processed',
