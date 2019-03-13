@@ -19,7 +19,9 @@
 		"issues": "https://github.com/twohill/silverstripe-pxpay/issues"
 	},
 	"require": {
-		"twohill/silverstripe-nestedcontrollers": "dev-master"
+		"twohill/silverstripe-nestedcontrollers": "^2",
+		"ext-curl": "*",
+		"ext-simplexml": "*"
 	},
 	"extra": {
 		"installer-name": "pxpay"

@@ -1,69 +1,155 @@
-# SilverStripe supported module skeleton
+# silverstripe-pxpay
 
-A useful skeleton to more easily create modules that conform to the [Module Standard]
-(https://docs.silverstripe.org/en/3.2/developer_guides/extending/modules/#module-standard).
-
-This readme contains descriptions of the parts of this module base you should customise to meet you own module needs.
-For example, the module name in the H1 above should be you own module name, and the description text you are reading now
-is where you should provide a good short explanation of what your module does.
-
-Where possible we have included default text that can be included as is into your module and indicated in 
-other places where you need to customise it
-
-Below is a template of the sections of your readme.md you should ideally include to met the Module Standard 
-and help others make use of your modules.
+A module that integrates your controller with Payment Express.
 
 ## Requirements
- * SilverStripe ^3.1
- * Other module
- * Other server requirement
- * Etc
+ * SilverStripe ^4
+ * php-curl
+ * php-simplexml
+
 
 ## Installation
-Add some installation instructions here, having a 1 line composer copy and paste is useful. 
-Here is a composer command to create a new module project. Ensure you read the ['publishing a module']
-(https://docs.silverstripe.org/en/developer_guides/extending/how_tos/publish_a_module/) guide update you module 
-composer.json to designate your code as a SilverStripe module. 
+Using composer
 
 ```
-composer create-project silverstripe-module/skeleton module-name
+composer require twohill/silverstripe-pxpay
 ```
 
 ## License
-See [License](license.md)
+BSD 3-Clause "New" or "Revised" License. See [License](license.md)
 
-We have included a 3-clause BSD license you can use as a default. We advocate for the BSD license as 
-it is one of the most permissive and open licenses.
 
-Feel free to alter the [license.md](license.md) to suit if you wan tto use an alternative license.
-You can use [choosealicense.com](http://choosealicense.com) to help pick a suitable license for your project.
+## Example configuration
 
-## Documentation
- * [Documentation readme](docs/en/readme.md)
-
-Add links into your docs/<language> folder here unless your module only requires minimal documentation 
-in that case, add here and remove the docs folder. You might use this as a quick table of content if you
-mhave multiple documentation pages.
-
-## Example configuration (optional)
-If your module makes use of the config API in SIlverStripe it's a good idea to provide an example config
- here that will get the module working out of the box and expose the user to the possible configuration options.
-
-Provide a yaml code example where possible.
+Configure your PxPayment details in a config yml file. You can specify different settings for `dev` or `live` modes.
+A useful option for doing this is to use your sandbox credentials when in `dev` mode.
 
 ```yaml
 
-Page:
-  config_option: true
-  another_config:
-    - item1
-    - item2
+---
+Only:
+  environment: 'live'
+---
+Twohill\PXPay\PxPaymentController:
+  PxPayURL: https://sec.paymentexpress.com/pxaccess/pxpay.aspx
+  PxPayUserId: MyUserID
+  PxPayKey: xxxxxx
+
+---
+Only:
+  environment: 'dev'
+---
+Twohill\PXPay\PxPaymentController:
+  PxPayURL: https://sec.paymentexpress.com/pxaccess/pxpay.aspx
+  PxPayUserId: MyUserID_dev
+  PxPayKey: xxxxxx
   
 ```
 
+## Example usage
+
+Return the `PxPaymentController` as the result of a payment method
+
+```php
+
+class MyPageController extends PageController
+{
+    private static $allowed_actions = [
+        'thankyou',
+        'pay_order',
+        'unsuccessful',
+    ];
+    
+    public function thankyou(HTTPRequest $request)
+    {
+        $content = '';
+        if ($request->getSession()->get('OrderID')) {
+            $order = Order::get()->byID($request->getSession()->get('OrderID'));
+
+            if ($order) {
+           
+                $payment = $order->Payment();
+
+                if ($payment && $payment->TxnId) {
+                    if ($payment->Processed) {
+                        $sendEmail = false;
+                    } else {
+                        $payment->Processed = true;
+                        $payment->write();
+                    }
+                } else {
+                    $this->redirect($this->Link('pay-order/submit'));
+                }
+                $content = $this->ThankYouForPayingContent; // From MyPage $db
+            }
+
+            $request->getSession()->clear("OrderID");
+            return $this->customise(new ArrayData([
+                'Content' => DBField::create_field('HTMLFragment', $content),
+                'Form' => ''
+            ]));
+        }
+        return $this->redirect($this->Link());
+    }
+    /**
+     * Process the payment
+     *
+     * @param HTTPRequest $request
+     * @return PxPaymentController
+     * @throws ValidationException
+     */
+    public function pay_order(HTTPRequest $request)
+    {
+    
+        // Load the payment details somehow
+        $payment = null;
+
+        if ($request->getSession()->get('OrderID')) {
+           
+            $order = Order::get()->byID($request->getSession()->get('OrderID'));
+
+            if ($order) {
+                $payment = new PxPayment();
+                $payment->TxnType = "Purchase";
+                $payment->MerchantReference = $order->InvoiceNumber;
+                $payment->TxnData1 = $order->CompanyName;
+                $payment->TxnData2 = $order->Address;
+                $payment->TxnData3 = $order->City;
+                $payment->EmailAddress = $order->Contact()->Email;
+                $payment->AmountInput = $order->Total;
+                $payment->CurrencyInput = "NZD";
+                $payment->InvoiceID = $order->ID;
+                $payment->write();
+                }
+            }
+        }
+        return new PxPaymentController($this, $request, $payment, $this->Link("thankyou"), $this->Link("unsuccessful"));
+    }
+
+    /** 
+     * Action when payment is unsuccessful. 
+     */
+    public function unsuccessful(HTTPRequest $request)
+    {
+        if ($request->getSession()->get('OrderID')) {
+            $order = Order::get()->byID($request->getSession()->get('OrderID'));
+            if ($order) {
+                return $this->customise([
+                    'Content' => DBField::create_field('HTMLFragment', $this->UnsuccessfulContent),
+                    'Form' => ''
+                ]);
+            }
+        }
+        return $this->redirect($this->Link());
+    }
+
+
+}
+
+```
+
 ## Maintainers
- * Person here <person@emailaddress.com>
- * Another maintainer <maintain@emailaddress.com>
+ * Al Twohill <al@twohill.nz>
  
 ## Bugtracker
 Bugs are tracked in the issues section of this repository. Before submitting an issue please read over 

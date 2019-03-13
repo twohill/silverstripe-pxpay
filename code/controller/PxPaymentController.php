@@ -8,27 +8,24 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Convert;
 use SilverStripe\Control\NestedController;
+use SilverStripe\ORM\ValidationException;
 
 
-
-/**
- * Created by PhpStorm.
- * User: al
- * Date: 4/03/15
- * Time: 2:05 PM
- */
-class PxPaymentController extends Controller implements NestedController {
+class PxPaymentController extends Controller implements NestedController
+{
     protected $parentController;
     protected $payment;
     protected $urlSegment;
     protected $successURL;
     protected $failURL;
 
-    public function __construct(Controller $parentController,
-                                HTTPRequest $request,
-                                PxPayment $payment = null,
-                                $successURL = null,
-                                $failURL = null) {
+    public function __construct(
+        Controller $parentController,
+        HTTPRequest $request,
+        PxPayment $payment = null,
+        $successURL = null,
+        $failURL = null
+    ) {
         parent::__construct();
         $this->parentController = $parentController;
         $this->payment = $payment;
@@ -43,25 +40,31 @@ class PxPaymentController extends Controller implements NestedController {
         'handle_response',
     );
 
-    public function Link($action = null) {
+    public function Link($action = null)
+    {
         return Controller::join_links($this->parentController->Link(), "/{$this->urlSegment}/$action");
     }
 
-    public function absoluteURL($action = '') {
+    public function absoluteURL($action = '')
+    {
         return Director::absoluteURL($this->Link($action));
     }
 
     /**
      * Implement controller nesting
      */
-    public function getNestedController() {
+    public function getNestedController()
+    {
         return $this->parentController;
     }
 
     /*
      * Submits the data to Payment Express, then redirects the user based on the response
+     *
+     * @throws Exception
      */
-    public function submit($request) {
+    public function submit()
+    {
         if (!$this->payment) {
             user_error("No payment data supplied");
         }
@@ -70,14 +73,15 @@ class PxPaymentController extends Controller implements NestedController {
         $xml .= "<PxPayKey>" . $this->config()->get('PxPayKey') . "</PxPayKey>";
         $xml .= "<UrlFail>" . $this->absoluteURL("handle-response") . "</UrlFail>";
         $xml .= "<UrlSuccess>" . $this->absoluteURL("handle-response") . "</UrlSuccess>";
-        foreach (array('TxnType',
-                       'MerchantReference',
-                       'TxnData1',
-                       'TxnData2',
-                       'TxnData3',
-                       'EmailAddress',
-                       'AmountInput',
-                       'CurrencyInput'
+        foreach (array(
+                     'TxnType',
+                     'MerchantReference',
+                     'TxnData1',
+                     'TxnData2',
+                     'TxnData3',
+                     'EmailAddress',
+                     'AmountInput',
+                     'CurrencyInput'
                  ) as $key) {
             $xml .= "<$key>" . Convert::raw2xml($this->payment->$key) . "</$key>";
         }
@@ -111,7 +115,8 @@ class PxPaymentController extends Controller implements NestedController {
     /*
      * Handles the response
      */
-    public function handle_response($request) {
+    public function handle_response(HTTPRequest $request)
+    {
         $token = $request->getVar('result');
 
         if ($token) {
@@ -146,8 +151,12 @@ class PxPaymentController extends Controller implements NestedController {
                         $this->redirect($this->successURL);
                     } else {
                         if ($response->Success == 1) {
-                            $this->payment->TxnId = "{$response->TxnId}";
-                            $this->payment->write();
+                            try {
+                                $this->payment->TxnId = "{$response->TxnId}";
+                                $this->payment->write();
+                            } catch (ValidationException $e) {
+                                $this->redirect($this->failURL);
+                            }
                             $this->redirect($this->successURL);
                         } else {
 

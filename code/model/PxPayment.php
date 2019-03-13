@@ -4,11 +4,29 @@ namespace Twohill\PXPay;
 
 use SilverStripe\ORM\DataObject;
 
-class PxPayment extends DataObject {
+/**
+ * Class PxPayment
+ * @package Twohill\PXPay
+ *
+ * @property string $TxnType
+ * @property string $MerchantReference
+ * @property string $TxnId
+ * @property string $TxnData1
+ * @property string $TxnData2
+ * @property string $TxnData3
+ * @property string $EmailAddress
+ * @property double $CurrencyInput
+ * @property boolean $Processed
+ *
+ */
+class PxPayment extends DataObject
+{
 
     private static $table_name = "PXPayment";
 
     private static $singular_name = "Payment";
+
+    private static $plural_name = "Payments";
 
     private static $db = [
         'TxnType' => 'Enum("Purchase, Auth", "Purchase")',
