@@ -15,7 +15,8 @@ use SilverStripe\ORM\DataObject;
  * @property string $TxnData2
  * @property string $TxnData3
  * @property string $EmailAddress
- * @property double $CurrencyInput
+ * @property double $AmountInput
+ * @property string $CurrencyInput
  * @property boolean $Processed
  *
  */
