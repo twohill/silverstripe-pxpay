@@ -103,11 +103,11 @@ class PxPaymentController extends Controller implements NestedController
                 $this->redirect($response->URI);
             } else {
                 $error = $response->responsetext ? $response->responsetext : $rawResponse;
-                throw new Exception("Error message from DPS: $error");
+                throw new Exception("Error message from DPS: `$error`. Request was: `$xml`");
             }
         } else {
             $error = ($rawResponse) ? $rawResponse : curl_error($ch);
-            throw new Exception("Error communicating with DPS: $error");
+            throw new Exception("Error communicating with DPS:`$error`. Request was: `$xml`");
         }
 
     }
