@@ -56,4 +56,10 @@ class PxPayment extends DataObject
         'AmountInput',
         'Processed',
     ];
+    
+    /** Payment Express does not like more than 2 digits **/
+    public function setAmountInput($value) 
+    {
+        return $this->setField('AmountInput', round($value, 2));
+    }
 }
