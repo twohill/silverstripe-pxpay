@@ -57,9 +57,9 @@ class PxPayment extends DataObject
         'Processed',
     ];
     
-    /** Payment Express does not like more than 2 digits **/
+    /** Payment Express only likes 2 digits with no commas in the number **/
     public function setAmountInput($value) 
     {
-        return $this->setField('AmountInput', round($value, 2));
+        return $this->setField('AmountInput', str_replace(',', '', number_format($value, 2)));
     }
 }

@@ -68,6 +68,9 @@ class PxPaymentController extends Controller implements NestedController
         if (!$this->payment) {
             user_error("No payment data supplied");
         }
+
+        $this->payment->setAmountInput($this->payment->AmountInput);
+
         $xml = "<GenerateRequest>";
         $xml .= "<PxPayUserId>" . $this->config()->get('PxPayUserId') . "</PxPayUserId>";
         $xml .= "<PxPayKey>" . $this->config()->get('PxPayKey') . "</PxPayKey>";
